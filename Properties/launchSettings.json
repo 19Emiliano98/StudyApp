@@ -6,7 +6,7 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "APPKEY": "\"ñ_St.udyApp._ñghfgyhrtyrtytyututyutyu\"",
+        "Key": "\"ñ_St.udyApp._ñghfgyhrtyrtytyututyutyu\"",
         "Issuer": "\"https://localhost:7242/\"",
         "Audience": "\"https://localhost:7242/\"",
         "Subject": "\"StudyAppWebApiSubject\""

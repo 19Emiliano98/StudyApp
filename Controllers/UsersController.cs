@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using StudyApp.Models;
@@ -18,6 +19,7 @@ namespace StudyApp.Controllers
             _dbcontext = _context;
         }
 
+        [Authorize]
         [HttpGet]
         [Route("VerUsuarios")]
         public IActionResult VerUsuarios()
@@ -36,45 +38,28 @@ namespace StudyApp.Controllers
             }
         }
 
+
         [HttpPost]
         [Route("Login")]
-        public IActionResult Login([FromBody] User objeto)
+        public IActionResult Login([FromBody] User param)
         {
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, Environment.GetEnvironmentVariable("Subject")),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, DateTime.UtcNow.ToString()),
-                new Claim("usuaio", objeto.Nombre)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Environment.GetEnvironmentVariable("APPKEY")));
-            var singIn = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                    Environment.GetEnvironmentVariable("Issuer"),
-                    Environment.GetEnvironmentVariable("Audience"),
-                    claims,
-                    expires: DateTime.Now.AddMinutes(1),
-                    signingCredentials: singIn
-                );
-
             try
             {
-                User usuario = _dbcontext.Users.Where(x => x.Nombre == objeto.Nombre && x.Pass == objeto.Pass).FirstOrDefault();
+                var user = _dbcontext.Users.Where(x => x.Nombre == param.Nombre && x.Pass == param.Pass).FirstOrDefault();
 
-                if (usuario == null)
+                if (user == null)
                 {
                     return BadRequest("Credenciales incorrectas");
                 }
 
-                return StatusCode(StatusCodes.Status200OK, new { mensaje = new JwtSecurityTokenHandler().WriteToken(token) });
+                string token = Jwt.GenerarToken(user);
+
+                return StatusCode(StatusCodes.Status200OK, new { mensaje = "Token: " + token });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status200OK, new { mensaje = ex.Message });
             }
         }
-
     }
 }
