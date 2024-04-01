@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using StudyApp.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System;
 
 namespace StudyApp.Controllers
 {
@@ -19,7 +15,6 @@ namespace StudyApp.Controllers
             _dbcontext = _context;
         }
 
-        [Authorize]
         [HttpGet]
         [Route("VerUsuarios")]
         public IActionResult VerUsuarios()
@@ -43,23 +38,47 @@ namespace StudyApp.Controllers
         [Route("Login")]
         public IActionResult Login([FromBody] User param)
         {
+            var user = _dbcontext.Users.Where(x => x.Nombre == param.Nombre && x.Pass == param.Pass).FirstOrDefault();
+
+            if (user == null)
+            {
+                return BadRequest("Credenciales incorrectas");
+            }
+            
             try
             {
-                var user = _dbcontext.Users.Where(x => x.Nombre == param.Nombre && x.Pass == param.Pass).FirstOrDefault();
-
-                if (user == null)
-                {
-                    return BadRequest("Credenciales incorrectas");
-                }
-
                 string token = Jwt.GenerarToken(user);
 
-                return StatusCode(StatusCodes.Status200OK, new { mensaje = "Token: " + token });
+                return StatusCode(StatusCodes.Status200OK, new { mensaje = token });
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status200OK, new { mensaje = ex.Message });
             }
+        }
+
+        [HttpPost]
+        [Route("Register")]
+        public IActionResult Register([FromBody] User param)
+        {
+            var user = _dbcontext.Users.Where(x => x.Email == param.Email).FirstOrDefault();
+
+            if (user == null)
+            {
+                try
+                {
+                    _dbcontext.Users.Add(param);
+                    _dbcontext.SaveChanges();
+
+                    return StatusCode(StatusCodes.Status200OK, new { mensaje = "ok" });
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(StatusCodes.Status200OK, new { mensaje = ex.Message });
+                }
+            }
+
+            return StatusCode(StatusCodes.Status200OK, new { mensaje = "ya existe uno, ingresa con el que ya creaste" });
         }
     }
 }

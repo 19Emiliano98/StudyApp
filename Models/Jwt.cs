@@ -8,10 +8,10 @@ namespace StudyApp.Models
 {
     public class Jwt
     {
-        public string Key { get; set; }
-        public string Issuer { get; set; }
-        public string Audience { get; set; }
-        public string Subject { get; set; }
+        //public string Key { get; set; }
+        //public string Issuer { get; set; }
+        //public string Audience { get; set; }
+        //public string Subject { get; set; }
 
         public static dynamic GenerarToken(User userData)
         {
@@ -21,9 +21,10 @@ namespace StudyApp.Models
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Name, userData.Nombre)
+                    new Claim("userID", userData.IdUser.ToString()),
+                    new Claim("rol", userData.Rol)
                 }),
-                Expires = DateTime.UtcNow.AddMinutes(1),
+                Expires = DateTime.UtcNow.AddMonths(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(byteKey), SecurityAlgorithms.HmacSha256),
             };
             
